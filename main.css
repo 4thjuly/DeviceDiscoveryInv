@@ -1,0 +1,45 @@
+html, body {
+    width: 100%; height: 100%;
+    margin: 0px; padding: 0px;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: none;
+    border-width: 0px;
+    margin: 0px;
+}
+
+.flexColumn {
+  width: 100%; height: 100%;
+  display: -webkit-flex;
+  -webkit-flex-direction: column;
+  -webkit-align-content: center;
+  -webkit-align-items: stretch;
+}
+
+.header {
+    background-image: -webkit-linear-gradient(top, #EEE 0%, #DDD 100%);
+    padding: 3px;
+    display: -webkit-flex;
+    -webkit-flex-direction: row;
+    -webkit-align-content: center;
+    -webkit-align-items: center;
+    -webkit-justify-content: flex-end;
+    -webkit-flex-wrap: wrap;
+}
+
+.header #titleText {
+    -webkit-flex-grow: 1;
+    font: -webkit-small-control;
+}
+
+.flexColumn .header {
+  -webkit-order: 1;
+  -webkit-flex: 0 0 auto;
+}
+
+.flexColumn .content {
+  -webkit-order: 2;
+  -webkit-flex: 1 1 auto;
+ }
