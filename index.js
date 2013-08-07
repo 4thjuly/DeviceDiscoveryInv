@@ -356,7 +356,8 @@ function wsTransferGet(wsDevice) {
 function wsTransferGetRSC(e) {
     if (this.readyState == 4) {
         if (this.status == 200) {
-            var xml = this.responseXML;  
+            var xml = this.responseXML; 
+            console.log("wstgrsc: responseXML: " + xml);
             // TODO - get the friendly name, make, model etc from
             // Blocked on UDP being able to share the wsd port on windows (works on ChromeOS)
         }
