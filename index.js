@@ -54,7 +54,7 @@ function getSsdpDeviceInfo(data) {
         var line = lines[i];
         var delimPos = line.indexOf(":");
         if (delimPos > 0) {
-            info[line.substring(0, delimPos)] = line.substring(delimPos+1);
+            info[line.substring(0, delimPos).toUpperCase()] = line.substring(delimPos+1);
         }
     }
     return info;
@@ -113,7 +113,7 @@ function ssdpRecvLoop(socketId) {
     // console.log("recvFrom:...");
     chrome.socket.recvFrom(socketId, 4096, function (result) {
         if (result.resultCode >= 0) {
-            //console.log("recvFrom: " + result.address);
+            // console.log("ssdpRrecvFrom: " + result.address);
             var dv = new DataView(result.data);
             var blob = new Blob([dv]);
             var fr = new FileReader();
