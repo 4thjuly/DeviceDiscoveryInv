@@ -171,6 +171,7 @@ function wsdRecvLoop(socketId) {
                 // 2) Envelope.Body.ProbeMatches.ProbeMatch.XAddrs                
                 val location = getXmlDataForTag(xml, "XAddrs");
                 if (location) {
+                    console.log("wsdrcl: " + location);
                     var wsDevice = new ServiceDevice(location, result.address);
                     g_serviceDevices[location] = wsDevice;
                     getWsdDeviceInfo(wsDevice);
