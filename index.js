@@ -164,11 +164,15 @@ function wsdRecvLoop(socketId) {
                 var txt = e.target.result;
                 var parser = new DOMParser();
                 var xml = parser.parseFromString(txt,"text/xml");
-                var location = 'http://' + result.address;
-                // TODO - avoid duplicate locations
+                // TODO Debug: show types
+                console.log("wsdrcl: types: " + getXmlDataForTag(xml, "Types"));
+                // 1) Envelope.Body.Probe.Types
+                // TODOD location is XAddrs 
+                // 2) Envelope.Body.ProbeMatches.ProbeMatch.XAddrs                
+                val location = getXmlDataForTag(xml, "XAddrs");
                 var wsDevice = new ServiceDevice(location, result.address);
                 g_serviceDevices[location] = wsDevice;
-                getWsdDeviceInfo(wsDevice);
+                etWsdDeviceInfo(wsDevice);
             };
             fr.readAsText(blob);
             wsdRecvLoop(socketId);
@@ -366,5 +370,5 @@ function wsTransferGetRSC(e) {
 }
 
 function getWsdDeviceInfo(wsDevice) {
-    wsTransferGet(wsDevice);
+    // wsTransferGet(wsDevice);
 }
