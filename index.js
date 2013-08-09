@@ -266,8 +266,8 @@ function createNewUuid() {
     return uuid;
 }
 
-var probeStr = [
-'<?xml version="1.0" encoding="utf-8" ?>', 
+var probeStrHeader = '<?xml version="1.0" encoding="utf-8" ?>';
+var probeStrBody = [
 '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:wsdp="http://schemas.xmlsoap.org/ws/2006/02/devprof">',
 '<soap:Header>',
     '<wsa:To>',
@@ -286,7 +286,8 @@ var probeStr = [
     '</wsd:Probe>',
 '</soap:Body>',
 '</soap:Envelope>'
-].join('\r\n');
+].join('');
+var probeStr = probeStrHeader + '\r\n' + probeStrBody;
 
 var g_wsdSearchSocket;
 
