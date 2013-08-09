@@ -1,3 +1,8 @@
+// Random hacks to test out web service discovery via broadcast sockets
+// Support goal: 
+//      SSDP (media players, routers etc)
+//      WSD (printers, newwer computers)
+//      NBT (legacy computers, some network devices)
 
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#connectButton').addEventListener('click', initUDP);
