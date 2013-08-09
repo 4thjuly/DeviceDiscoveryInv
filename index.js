@@ -169,10 +169,10 @@ function wsdRecvLoop(socketId) {
                 // 1) Envelope.Body.Probe.Types
                 // TODOD location is XAddrs 
                 // 2) Envelope.Body.ProbeMatches.ProbeMatch.XAddrs                
-                val location = getXmlDataForTag(xml, "XAddrs");
+                var location = getXmlDataForTag(xml, "XAddrs");
                 var wsDevice = new ServiceDevice(location, result.address);
                 g_serviceDevices[location] = wsDevice;
-                etWsdDeviceInfo(wsDevice);
+                getWsdDeviceInfo(wsDevice);
             };
             fr.readAsText(blob);
             wsdRecvLoop(socketId);
@@ -370,5 +370,5 @@ function wsTransferGetRSC(e) {
 }
 
 function getWsdDeviceInfo(wsDevice) {
-    // wsTransferGet(wsDevice);
+    wsTransferGet(wsDevice);
 }
