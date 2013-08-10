@@ -345,18 +345,22 @@ var WSD_TRANSFER_GET_MSG = [
     'xmlns:s="http://www.w3.org/2003/05/soap-envelope"',
     'xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"',
   '<s:Header>',
-    '<wsa:To>urn:uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
+    '<wsa:To>uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
     '<wsa:Action>',
       'http://schemas.xmlsoap.org/ws/2004/09/transfer/Get',
     '</wsa:Action>',
     '<wsa:MessageID>',
       'urn:uuid:00000000-0000-0000-0000-000000000000',
     '</wsa:MessageID>',
+    '<wsa:ReplyTo>',
+	  '<wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>',
+    '</wsa:ReplyTo>',
   '</s:Header>',
   '<s:Body/>',
 '</s:Envelope>'  
 ].join('');
-var WSD_TRANSFER_GET = SOAP_HEADER + '\r\n' + WSD_TRANSFER_GET_MSG;
+var WSD_TRANSFER_GET = SOAP_HEADER + WSD_TRANSFER_GET_MSG;
+
 
 function wsTransferGet(wsDevice) {
     var uuid = createNewUuid();
