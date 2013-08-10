@@ -26,7 +26,7 @@ function connectUDP() {
 }
 */
 
-// Hash of device found on the local network, indexed by 'IP'
+// Hash of device found on the local network, indexed by 'location'
 var g_serviceDevices = {};
 var g_ssdpSocket;
 var g_wsdSocket;
@@ -110,17 +110,21 @@ function updateXmlInfoRSC(e) {
             this.ssdpDevice.manufacturer = getXmlDataForTag(xml, "manufacturer");
             this.ssdpDevice.model = getXmlDataForTag(xml, "modelName");
             this.ssdpDevice.presentationUrl = getXmlDataForTag(xml, "presentationURL");
-            console.log(this.ssdpDevice.manufacturer + " " + this.ssdpDevice.model + " " + this.ssdpDevice.friendlyName + " " + this.ssdpDevice.ip);
-            console.log(this.ssdpDevice.presentationUrl);     
+            
+            console.log('uxmlirsc: ...');
+            console.log(' loc: ' + this.ssdpDevice.location);     
+            console.log(' info: ' + this.ssdpDevice.friendlyName + " (" + this.ssdpDevice.manufacturer + " " + this.ssdpDevice.model + ") [" + this.ssdpDevice.ip + "]");
+            // console.log(this.ssdpDevice.manufacturer + " " + this.ssdpDevice.model + " " + this.ssdpDevice.friendlyName + " " + this.ssdpDevice.ip);
+            console.log(' purl: ' + this.ssdpDevice.presentationUrl);     
         }
     }    
 }
 
 function ssdpRecvLoop(socketId) {
-    console.log("ssdpRecvFrom:...");
+    //console.log("ssdpRecvLoop:...");
     chrome.socket.recvFrom(socketId, 4096, function (result) {
         if (result.resultCode >= 0) {
-            console.log("ssdpRrecvFrom: " + result.address);
+            //console.log("ssdprl.recvFrom("+socketId+"): " + result.address + ":" + result.port);
             var dv = new DataView(result.data);
             var blob = new Blob([dv]);
             var fr = new FileReader();
@@ -128,6 +132,8 @@ function ssdpRecvLoop(socketId) {
                 // var st = getServiceType(e.target.result);
                 var info = getSsdpDeviceInfo(e.target.result);
                 var location = info["LOCATION"];
+                //console.log('ssdprl.loc:' + location);
+                //console.log('ssdprl.st:' + info["ST"]);
                 // Keep track of devices by location
                 if (location && !(location in g_serviceDevices)) {
                     var ssdpDevice = new ServiceDevice(location, result.address);
@@ -154,7 +160,7 @@ function ssdpRecvLoop(socketId) {
             ssdpRecvLoop(socketId);
         } else {
             // TODO: Handle error -4?
-            console.log("recvFrom: " + result.resultCode);
+            console.log("ssdprRecvFrom: Error: " + result.resultCode);
         }
     });   
 }
@@ -220,15 +226,16 @@ function createMulticastSocket(ip, port, callback) {
         var socketId = socket.socketId;
         chrome.socket.setMulticastTimeToLive(socketId, 4, function (result) {
             if (result != 0) {
-                console.log("smttl: " + result);
+                console.log("cms.smttl: " + result);
             }
             chrome.socket.bind(socketId, "0.0.0.0", port, function (result) {
-                console.log("bind: " + result);
+                console.log("cms.bind: " + result);
                 if (result == 0) {
                        chrome.socket.joinGroup(socketId, ip, function (result) {
                         if (result != 0) {
-                            console.log("joinGroup: " + result);
+                            console.log("cms.joinGroup: " + result);
                         } else {
+                            console.log("cms: " + socketId)
                             callback(socket);
                         }
                     });             
@@ -240,10 +247,11 @@ function createMulticastSocket(ip, port, callback) {
 
 var SSDP_DISCOVER = [
      'M-SEARCH * HTTP/1.1 ',
-     'HOST:239.255.255.250:1900',
-     'MAN:"ssdp:discover"',
+     'HOST: 239.255.255.250:1900',
+     'MAN: "ssdp:discover"',
      'MX:3',
-     'ST::ssdp:all' 
+     'ST: ssdp:all', 
+     '\r\n'
     ].join('\r\n');
    
    
@@ -268,7 +276,7 @@ function ssdpSearch() {
         var socketId = socket.socketId;
         chrome.socket.bind(socketId, "0.0.0.0", 0, function (result) {
             chrome.socket.sendTo(socketId, buf, "239.255.255.250", 1900, function (result){
-                console.log("search wrote:" + result.bytesWritten);
+                console.log("ssdpSearch wrote:" + result.bytesWritten);
                 ssdpRecvLoop(socketId);
             });
         });
@@ -328,7 +336,7 @@ function wsdSearch() {
         var socketId = socket.socketId;
         chrome.socket.bind(socketId, "0.0.0.0", 0, function (result) {
             chrome.socket.sendTo(socketId, buf, "239.255.255.250", 3702, function (result){
-                console.log("search wrote:" + result);
+                console.log("wsdSearch wrote:" + result);
                 wsdRecvLoop(socketId);
             });
         });
@@ -336,6 +344,7 @@ function wsdSearch() {
 }
 
 function devicesSearch() {
+    g_serviceDevices = {}; // Reset the list
     ssdpSearch();
     wsdSearch();
 }
