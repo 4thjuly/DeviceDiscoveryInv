@@ -117,10 +117,10 @@ function updateXmlInfoRSC(e) {
 }
 
 function ssdpRecvLoop(socketId) {
-    // console.log("recvFrom:...");
+    console.log("ssdpRecvFrom:...");
     chrome.socket.recvFrom(socketId, 4096, function (result) {
         if (result.resultCode >= 0) {
-            // console.log("ssdpRrecvFrom: " + result.address);
+            console.log("ssdpRrecvFrom: " + result.address);
             var dv = new DataView(result.data);
             var blob = new Blob([dv]);
             var fr = new FileReader();
@@ -218,7 +218,7 @@ function initUDP() {
 function createMulticastSocket(ip, port, callback) {
     chrome.socket.create("udp", function (socket) {
         var socketId = socket.socketId;
-        chrome.socket.setMulticastTimeToLive(socketId, 31, function (result) {
+        chrome.socket.setMulticastTimeToLive(socketId, 4, function (result) {
             if (result != 0) {
                 console.log("smttl: " + result);
             }
@@ -238,12 +238,12 @@ function createMulticastSocket(ip, port, callback) {
     });
 };
 
-var ssdpDiscoverStr = [
+var SSDP_DISCOVER = [
      'M-SEARCH * HTTP/1.1 ',
-     'HOST: 239.255.255.250:1900',
-     'MAN: "ssdp:discover"',
-     'MX: 3',
-     'ST: ssdp:all' 
+     'HOST:239.255.255.250:1900',
+     'MAN:"ssdp:discover"',
+     'MX:3',
+     'ST::ssdp:all' 
     ].join('\r\n');
    
    
@@ -251,7 +251,7 @@ var g_ssdpSearchSocket;
 
 function ssdpSearch() {
     // trigger an ssdp m-search
-    var str = ssdpDiscoverStr;
+    var str = SSDP_DISCOVER;
     var buf = new ArrayBuffer(str.length);
     var bufView = new Uint8Array(buf);
     for (var i=0, strLen=str.length; i<strLen; i++) {
@@ -268,7 +268,7 @@ function ssdpSearch() {
         var socketId = socket.socketId;
         chrome.socket.bind(socketId, "0.0.0.0", 0, function (result) {
             chrome.socket.sendTo(socketId, buf, "239.255.255.250", 1900, function (result){
-                console.log("search wrote:" + result);
+                console.log("search wrote:" + result.bytesWritten);
                 ssdpRecvLoop(socketId);
             });
         });
