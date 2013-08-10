@@ -31,13 +31,14 @@ var g_serviceDevices = {};
 var g_ssdpSocket;
 var g_wsdSocket;
 
-function ServiceDevice(location, ip, manufacturer, model, friendlyName, presentationUrl) {
+function ServiceDevice(location, ip, endpointReference, manufacturer, model, friendlyName, presentationUrl) {
     this.location = location;
     this.manufacturer = manufacturer;
     this.model = model;
     this.friendlyName = friendlyName;
     this.ip = ip;
     this.presentationUrl = presentationUrl;
+    this.endpointReference = endpointReference;
 }
 
 /*
@@ -180,7 +181,8 @@ function wsdRecvLoop(socketId) {
                 if (location) {
                     location = location.split(' ')[0];
                     console.log("wsdrcl: " + location);
-                    var wsDevice = new ServiceDevice(location, result.address);
+                    var endpointReference = getXmlDataForTag(xml, "Address");
+                    var wsDevice = new ServiceDevice(location, result.address, endpointReference);
                     g_serviceDevices[location] = wsDevice;
                     getWsdDeviceInfo(wsDevice);
                 }
@@ -358,7 +360,8 @@ var WSD_TRANSFER_GET = SOAP_HEADER + '\r\n' + WSD_TRANSFER_GET_MSG;
 
 function wsTransferGet(wsDevice) {
     var uuid = createNewUuid();
-    var str = WSD_TRANSFER_GET.replace("00000000-0000-0000-0000-000000000000", uuid);  
+    var str = WSD_TRANSFER_GET.replace('00000000-0000-0000-0000-000000000000', uuid);
+    str = str.replace('uuid:11111111-1111-1111-1111-111111111111', wsDevice.endpointReference);
     // TODO - Replace the To: with an end-point reference
     var xhr = new XMLHttpRequest();
     xhr.wsDevice = wsDevice;
@@ -370,6 +373,7 @@ function wsTransferGet(wsDevice) {
     xhr.send(str);
 }
 
+// Should get a GetResponse following a ws-transfer get request
 function wsTransferGetRSC(e) {
     if (this.readyState == 4) {
         if (this.status == 200) {
