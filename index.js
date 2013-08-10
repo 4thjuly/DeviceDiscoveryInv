@@ -177,8 +177,8 @@ function wsdRecvLoop(socketId) {
                 // 2) Envelope.Body.ProbeMatches.ProbeMatch.XAddrs                
                 var location = getXmlDataForTag(xml, "XAddrs");
                 // HACK - Just grab the first address if there are multiple
-                location = location.split(' ')[0];
                 if (location) {
+                    location = location.split(' ')[0];
                     console.log("wsdrcl: " + location);
                     var wsDevice = new ServiceDevice(location, result.address);
                     g_serviceDevices[location] = wsDevice;
