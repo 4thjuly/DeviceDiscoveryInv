@@ -3,6 +3,7 @@
 //      SSDP (media players, routers etc)
 //      WSD (printers, newwer computers)
 //      NBT (legacy computers, some network devices)
+//
 
 document.addEventListener('DOMContentLoaded', function () {
     document.querySelector('#connectButton').addEventListener('click', initUDP);
@@ -30,13 +31,14 @@ var g_serviceDevices = {};
 var g_ssdpSocket;
 var g_wsdSocket;
 
-function ServiceDevice(location, ip, manufacturer, model, friendlyName, presentationUrl) {
+function ServiceDevice(location, ip, endpointReference, manufacturer, model, friendlyName, presentationUrl) {
     this.location = location;
     this.manufacturer = manufacturer;
     this.model = model;
     this.friendlyName = friendlyName;
     this.ip = ip;
     this.presentationUrl = presentationUrl;
+    this.endpointReference = endpointReference;
 }
 
 /*
@@ -175,9 +177,12 @@ function wsdRecvLoop(socketId) {
                 // TODOD location is XAddrs 
                 // 2) Envelope.Body.ProbeMatches.ProbeMatch.XAddrs                
                 var location = getXmlDataForTag(xml, "XAddrs");
+                // HACK - Just grab the first address if there are multiple
                 if (location) {
+                    location = location.split(' ')[0];
                     console.log("wsdrcl: " + location);
-                    var wsDevice = new ServiceDevice(location, result.address);
+                    var endpointReference = getXmlDataForTag(xml, "Address");
+                    var wsDevice = new ServiceDevice(location, result.address, endpointReference);
                     g_serviceDevices[location] = wsDevice;
                     getWsdDeviceInfo(wsDevice);
                 }
@@ -278,8 +283,8 @@ function createNewUuid() {
     return uuid;
 }
 
-var probeStrHeader = '<?xml version="1.0" encoding="utf-8" ?>';
-var probeStrBody = [
+var SOAP_HEADER = '<?xml version="1.0" encoding="utf-8" ?>';
+var WSD_PROBE_MSG = [
 '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:wsdp="http://schemas.xmlsoap.org/ws/2006/02/devprof">',
 '<soap:Header>',
     '<wsa:To>',
@@ -299,14 +304,14 @@ var probeStrBody = [
 '</soap:Body>',
 '</soap:Envelope>'
 ].join('');
-var probeStr = probeStrHeader + '\r\n' + probeStrBody;
+var WSD_PROBE = SOAP_HEADER + '\r\n' + WSD_PROBE_MSG;
 
 var g_wsdSearchSocket;
 
 function wsdSearch() {
     // trigger an ws-discover probe
     var uuid = createNewUuid();
-    var str = probeStr.replace('00000000-0000-0000-0000-000000000000', uuid);
+    var str = WSD_PROBE.replace('00000000-0000-0000-0000-000000000000', uuid);
     var buf = new ArrayBuffer(str.length);
     var bufView = new Uint8Array(buf);
     for (var i=0, strLen=str.length; i<strLen; i++) {
@@ -335,27 +340,31 @@ function devicesSearch() {
     wsdSearch();
 }
 
-var transferGetStr = [
-'<s:Envelope>',
-    'xmlns:s="http://www.w3.org/2003/05/soap-envelope"',
-    'xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"',
-  '<s:Header>',
+var WSD_TRANSFER_GET_MSG = [
+'<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">',
+  '<soap:Header>',
     '<wsa:To>uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
     '<wsa:Action>',
       'http://schemas.xmlsoap.org/ws/2004/09/transfer/Get',
     '</wsa:Action>',
     '<wsa:MessageID>',
-      'uuid:00000000-0000-0000-0000-000000000000',
+      'urn:uuid:00000000-0000-0000-0000-000000000000',
     '</wsa:MessageID>',
-  '</s:Header>',
-  '<s:Body/>',
-'</s:Envelope>'  
-].join('\r\n');
+    '<wsa:ReplyTo>',
+	  '<wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>',
+    '</wsa:ReplyTo>',
+  '</soap:Header>',
+  '<soap:Body/>',
+'</soap:Envelope>'  
+].join('');
+var WSD_TRANSFER_GET = SOAP_HEADER + WSD_TRANSFER_GET_MSG;
+
 
 function wsTransferGet(wsDevice) {
     var uuid = createNewUuid();
-    var str = transferGetStr.replace("00000000-0000-0000-0000-000000000000", uuid);  
-    // TODO - Replace the To: ?
+    var str = WSD_TRANSFER_GET.replace('00000000-0000-0000-0000-000000000000', uuid);
+    str = str.replace('uuid:11111111-1111-1111-1111-111111111111', wsDevice.endpointReference);
+    // TODO - Replace the To: with an end-point reference
     var xhr = new XMLHttpRequest();
     xhr.wsDevice = wsDevice;
     xhr.open("POST", wsDevice.location, true);
@@ -366,6 +375,7 @@ function wsTransferGet(wsDevice) {
     xhr.send(str);
 }
 
+// Should get a GetResponse following a ws-transfer get request
 function wsTransferGetRSC(e) {
     if (this.readyState == 4) {
         if (this.status == 200) {
