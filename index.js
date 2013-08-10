@@ -341,9 +341,8 @@ function devicesSearch() {
 }
 
 var WSD_TRANSFER_GET_MSG = [
-'<s:Envelope>',
-    'xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"',
-  '<s:Header>',
+'<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing">',
+  '<soap:Header>',
     '<wsa:To>uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
     '<wsa:Action>',
       'http://schemas.xmlsoap.org/ws/2004/09/transfer/Get',
@@ -354,9 +353,9 @@ var WSD_TRANSFER_GET_MSG = [
     '<wsa:ReplyTo>',
 	  '<wsa:Address>http://schemas.xmlsoap.org/ws/2004/08/addressing/role/anonymous</wsa:Address>',
     '</wsa:ReplyTo>',
-  '</s:Header>',
-  '<s:Body/>',
-'</s:Envelope>'  
+  '</soap:Header>',
+  '<soap:Body/>',
+'</soap:Envelope>'  
 ].join('');
 var WSD_TRANSFER_GET = SOAP_HEADER + WSD_TRANSFER_GET_MSG;
 
