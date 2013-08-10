@@ -281,8 +281,8 @@ function createNewUuid() {
     return uuid;
 }
 
-var probeStrHeader = '<?xml version="1.0" encoding="utf-8" ?>';
-var probeStrBody = [
+var SOAP_HEADER = '<?xml version="1.0" encoding="utf-8" ?>';
+var WSD_PROBE_MSG = [
 '<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope" xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing" xmlns:wsd="http://schemas.xmlsoap.org/ws/2005/04/discovery" xmlns:wsdp="http://schemas.xmlsoap.org/ws/2006/02/devprof">',
 '<soap:Header>',
     '<wsa:To>',
@@ -302,14 +302,14 @@ var probeStrBody = [
 '</soap:Body>',
 '</soap:Envelope>'
 ].join('');
-var probeStr = probeStrHeader + '\r\n' + probeStrBody;
+var WSD_PROBE = SOAP_HEADER + '\r\n' + WSD_PROBE_MSG;
 
 var g_wsdSearchSocket;
 
 function wsdSearch() {
     // trigger an ws-discover probe
     var uuid = createNewUuid();
-    var str = probeStr.replace('00000000-0000-0000-0000-000000000000', uuid);
+    var str = WSD_PROBE.replace('00000000-0000-0000-0000-000000000000', uuid);
     var buf = new ArrayBuffer(str.length);
     var bufView = new Uint8Array(buf);
     for (var i=0, strLen=str.length; i<strLen; i++) {
@@ -338,27 +338,28 @@ function devicesSearch() {
     wsdSearch();
 }
 
-var transferGetStr = [
+var WSD_TRANSFER_GET_MSG = [
 '<s:Envelope>',
     'xmlns:s="http://www.w3.org/2003/05/soap-envelope"',
     'xmlns:wsa="http://schemas.xmlsoap.org/ws/2004/08/addressing"',
   '<s:Header>',
-    '<wsa:To>uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
+    '<wsa:To>urn:uuid:11111111-1111-1111-1111-111111111111</wsa:To>',
     '<wsa:Action>',
       'http://schemas.xmlsoap.org/ws/2004/09/transfer/Get',
     '</wsa:Action>',
     '<wsa:MessageID>',
-      'uuid:00000000-0000-0000-0000-000000000000',
+      'urn:uuid:00000000-0000-0000-0000-000000000000',
     '</wsa:MessageID>',
   '</s:Header>',
   '<s:Body/>',
 '</s:Envelope>'  
-].join('\r\n');
+].join('');
+var WSD_TRANSFER_GET = SOAP_HEADER + '\r\n' + WSD_TRANSFER_GET_MSG;
 
 function wsTransferGet(wsDevice) {
     var uuid = createNewUuid();
-    var str = transferGetStr.replace("00000000-0000-0000-0000-000000000000", uuid);  
-    // TODO - Replace the To: ?
+    var str = WSD_TRANSFER_GET.replace("00000000-0000-0000-0000-000000000000", uuid);  
+    // TODO - Replace the To: with an end-point reference
     var xhr = new XMLHttpRequest();
     xhr.wsDevice = wsDevice;
     xhr.open("POST", wsDevice.location, true);
