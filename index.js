@@ -62,16 +62,17 @@ function updateXmlInfoRSC(e) {
     if (this.readyState == 4) {
         if (this.status == 200 && this.responseXML) {
             var xml = this.responseXML;
-            this.ssdpDevice.friendlyName = getXmlDataForTag(xml, "friendlyName");
-            this.ssdpDevice.manufacturer = getXmlDataForTag(xml, "manufacturer");
-            this.ssdpDevice.model = getXmlDataForTag(xml, "modelName");
-            this.ssdpDevice.presentationUrl = getXmlDataForTag(xml, "presentationURL");
+            var device = this.ssdpDevice;
+            device.friendlyName = getXmlDataForTag(xml, "friendlyName");
+            device.manufacturer = getXmlDataForTag(xml, "manufacturer");
+            device.model = getXmlDataForTag(xml, "modelName");
+            device.presentationUrl = getXmlDataForTag(xml, "presentationURL");
             
             console.log('uxmlirsc: ...');
-            console.log(' loc: ' + this.ssdpDevice.location);     
-            console.log(' info: ' + this.ssdpDevice.friendlyName + " (" + this.ssdpDevice.manufacturer + " " + this.ssdpDevice.model + ") [" + this.ssdpDevice.ip + "]");
+            console.log(' loc: ' + device.location);     
+            console.log(' info: ' + device.friendlyName + " (" + device.manufacturer + " " + device.model + ") [" + device.ip + "]");
             // console.log(this.ssdpDevice.manufacturer + " " + this.ssdpDevice.model + " " + this.ssdpDevice.friendlyName + " " + this.ssdpDevice.ip);
-            console.log(' purl: ' + this.ssdpDevice.presentationUrl);     
+            console.log(' purl: ' + device.presentationUrl);     
         }
     }    
 }
@@ -330,10 +331,20 @@ function wsTransferGet(wsDevice) {
 function wsTransferGetRSC(e) {
     if (this.readyState == 4) {
         if (this.status == 200) {
-            var xml = this.responseXML; 
-            console.log("wstgrsc: responseXML: " + xml);
+            var xml = this.responseXML;
+            var device = this.wsDevice;
+            // console.log("wstgrsc: responseXML: " + xml);
             // TODO - get the friendly name, make, model etc from
-            // Blocked on UDP being able to share the wsd port on windows (works on ChromeOS)
+            // NB BLOCKED on crbug/238819 : UDP being able to share the wsd port on windows (works on ChromeOS)
+            device.manufacturer = getXmlDataForTag(xml, "Manufacturer");
+            device.model = getXmlDataForTag(xml, "ModelName");
+            device.presentationUrl = getXmlDataForTag(xml, "PresentationUrl");
+            device.friendlyName = getXmlDataForTag(xml, "FriendlyName");
+            
+            console.log('wstgrsc: ...');
+            console.log(' loc: ' + device.location);     
+            console.log(' info: ' + device.friendlyName + " (" + device.manufacturer + " " + device.model + ") [" + device.ip + "]");
+            console.log(' purl: ' + device.presentationUrl);  
         }
     }    
 }
